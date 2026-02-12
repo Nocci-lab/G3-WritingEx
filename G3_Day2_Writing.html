@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>Day 2 Writing | Word Order</title>
+
+<style>
+body{
+  font-family:"Hiragino Maru Gothic ProN","Hiragino Maru Gothic",sans-serif;
+  background:#fff9e6;
+  padding:20px;
+  text-align:center;
+  font-size:20px;
+}
+
+h1{
+  font-size:32px;
+  margin-bottom:20px;
+}
+
+.frame{
+  max-width:900px;
+  margin:auto;
+  background:#ffffff;
+  border:3px solid #f2c94c;
+  border-radius:16px;
+  padding:24px;
+}
+
+#jp{
+  font-size:26px;
+  font-weight:bold;
+  margin-bottom:20px;
+}
+
+.row{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+  gap:10px;
+  margin:16px 0;
+}
+
+#answerRow{
+  min-height:80px;
+  border:3px dashed #bbb;
+  border-radius:12px;
+  padding:12px;
+}
+
+.card{
+  background:#e6f5e6;
+  padding:14px 18px;
+  border-radius:12px;
+  font-size:24px;
+  font-weight:bold;
+  cursor:pointer;
+  user-select:none;
+  box-shadow:2px 2px 6px rgba(0,0,0,.2);
+}
+
+button{
+  padding:12px 24px;
+  font-size:20px;
+  border-radius:12px;
+  margin:6px;
+}
+
+#message{
+  font-size:24px;
+  font-weight:bold;
+  height:32px;
+  margin-top:10px;
+}
+
+#nextBtn,
+#speakBtn{
+  display:none;
+}
+
+canvas{
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+}
+</style>
+</head>
+
+<body>
+
+<h1>Day 2 Writing – Word Order</h1>
+
+<div class="frame">
+  <div id="jp"></div>
+
+  <div class="row" id="answerRow"></div>
+  <div class="row" id="cardRow"></div>
+
+  <button onclick="checkAnswer()">Check</button>
+  <button onclick="shuffleCards()">Shuffle 🔀</button>
+  <button id="nextBtn" onclick="nextQ()">Next ▶</button>
+  <button id="speakBtn" onclick="speak()">🔊 音声を聞く</button>
+  <button onclick="makePDF()">📄 PDF</button>
+
+  <div id="message"></div>
+</div>
+
+<canvas id="confetti"></canvas>
+
+<script>
+const questions=[
+{jp:"姉（妹）と私は今週末、泳ぎに行く予定です。",en:"My sister and I are planning to go swimming this weekend."},
+{jp:"私は友達と体育館でバスケットボールをするのを楽しんでいます。",en:"I enjoy playing basketball with my friends at the gym."},
+{jp:"私はテレビを見るのが好きで、特に音楽番組が好きです。",en:"I like to watch TV, especially music shows."},
+{jp:"私は一度も海に行ったことがありません。",en:"I have never been to the beach."},
+{jp:"私は美術館に行くのが好きです。なぜなら、そこでたくさんの美しい絵を見ることができるからです。",en:"I enjoy going to the museum because I can see many beautiful paintings there."},
+{jp:"私は毎年、夏休みの間に家の近くの夏祭りに行きます。",en:"I go to summer festivals near my house during summer vacation every year."},
+{jp:"レポートを終わらせる必要があるので、今日は家にいます。",en:"I will stay home today because I need to finish my report."},
+{jp:"私は歌のコンテストに参加して賞を取りたいです。",en:"I want to join the singing contest and win a prize."},
+{jp:"父は平日、だいたい7時ごろに会社を出ます。",en:"My father leaves his office around seven o’clock on weekdays."},
+{jp:"休み時間に時間をつぶすために、友達とトランプをしました。",en:"My friend and I played a card game during the break to kill time."},
+{jp:"新しい服を買うために、姉（妹）とデパートに行くつもりです。",en:"I am going to go to the department store with my sister to buy some new clothes."},
+{jp:"祖父は健康に問題があるので、朝に散歩をし、健康的な食事をしています。",en:"My grandfather has health problems, so he takes a walk in the morning and eats healthy food."},
+{jp:"私は海外の大学に進学する予定なので、もっと英語を勉強する必要があります。",en:"I am planning to study at a college abroad, so I need to study English harder."},
+{jp:"そのイタリアンレストランは1階にありましたが、私は間違えて2階に行ってしまいました。",en:"The Italian restaurant was on the first floor, but I mistakenly went to the second floor."},
+{jp:"私は自然について学ぶのが好きなので、好きな教科は理科です。",en:"I like learning about nature, so my favorite subject is science."},
+{jp:"風邪をひきたくなかったので、その日はコートを着ました。",en:"I didn’t want to catch a cold, so I wore a coat that day."}
+];
+
+let cur=0;
+
+/* ⭐ カンマ・ピリオドを単語扱い */
+function wordsOf(i){
+  return questions[i].en
+    .replace(/([.,?])/g," $1 ")
+    .trim()
+    .split(/\s+/);
+}
+
+function loadQ(){
+  message.textContent="";
+  nextBtn.style.display="none";
+  speakBtn.style.display="none";
+  jp.textContent=(cur+1)+") "+questions[cur].jp;
+  answerRow.innerHTML="";
+  cardRow.innerHTML="";
+
+  shuffle(wordsOf(cur)).forEach(w=>{
+    const c=document.createElement("div");
+    c.className="card";
+    c.textContent=w;
+    c.onclick=()=>toggle(c);
+    cardRow.appendChild(c);
+  });
+}
+
+function toggle(card){
+  if(card.parentElement.id==="cardRow"){
+    answerRow.appendChild(card);
+  }else{
+    cardRow.appendChild(card);
+  }
+}
+
+/* ⭐ スペース完全一致修正版 */
+function checkAnswer(){
+  const user=[...answerRow.children]
+    .map(c=>c.textContent)
+    .join(" ")
+    .replace(/\s+/g," ")
+    .trim();
+
+  const correct=wordsOf(cur).join(" ");
+
+  if(user===correct){
+    message.textContent="Correct! 🎉";
+    nextBtn.style.display="inline-block";
+    speakBtn.style.display="inline-block";
+  }else{
+    message.textContent="Try again ❌";
+  }
+}
+
+function shuffleCards(){
+  [...answerRow.children].forEach(c=>cardRow.appendChild(c));
+  shuffle([...cardRow.children]).forEach(c=>cardRow.appendChild(c));
+  message.textContent="";
+  nextBtn.style.display="none";
+  speakBtn.style.display="none";
+}
+
+function nextQ(){
+  cur++;
+  if(cur<questions.length){
+    loadQ();
+  }else{
+    message.textContent="All Done! 🎊";
+    startConfetti();
+  }
+}
+
+function shuffle(a){
+  return [...a].sort(()=>Math.random()-.5);
+}
+
+function speak(){
+  const u=new SpeechSynthesisUtterance(questions[cur].en);
+  u.lang="en-US";
+  u.rate=0.7;
+  speechSynthesis.cancel();
+  speechSynthesis.speak(u);
+}
+
+loadQ();
+
+function makePDF(){
+  const w=window.open("");
+  w.document.write(`
+  <html><head><style>
+  body{font-family:"Hiragino Maru Gothic ProN";padding:24px;}
+  h2{text-align:center;margin-bottom:20px;}
+  .q{margin-bottom:28px;page-break-inside:avoid;}
+  .words{font-size:13px;margin:6px 0;}
+  .line{border-bottom:1px solid #000;height:24px;margin-top:8px;}
+  .answer{margin-bottom:10px;}
+  .page-break{page-break-before:always;}
+  </style></head><body>
+  <h2>Day 2 Writing</h2>
+  Name: ____________　Date: ____________<br><br>
+  `);
+
+  /* ⭐ 問題ページ */
+  questions.forEach((q,i)=>{
+    const wds=shuffle(wordsOf(i)).join(" / ");
+    w.document.write(`
+      <div class="q">
+        ${i+1}) ${q.jp}<br>
+        <div class="words">${wds}</div>
+        <div class="line"></div>
+      </div>
+    `);
+  });
+
+  /* ⭐ 改ページ */
+  w.document.write(`
+    <div class="page-break"></div>
+    <h2>Answer</h2>
+  `);
+
+  /* ⭐ 答えページ */
+  questions.forEach((q,i)=>{
+    w.document.write(`
+      <div class="answer">
+        ${i+1}) ${q.en}
+      </div>
+    `);
+  });
+
+  w.document.write("</body></html>");
+  w.document.close();
+  w.print();
+}
+
+
+
+
+</script>
+</body>
+</html>
