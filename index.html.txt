@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>G3 Writing</title>
+
+  <style>
+    body {
+      font-family: "Hiragino Maru Gothic ProN", "Hiragino Maru Gothic", sans-serif;
+      max-width: 900px;
+      margin: 40px auto;
+      font-size: 18pt;
+      line-height: 1.8;
+      background: #fdf6ec;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      text-align: center;
+      font-size: 14pt;
+      margin-bottom: 36px;
+      color: #555;
+    }
+
+    .item {
+      background: white;
+      border: 2px solid #f2c94c;
+      border-radius: 18px;
+      padding: 22px;
+      margin-bottom: 24px;
+    }
+
+    .title {
+      font-size: 18pt;
+      margin-bottom: 6px;
+      font-weight: bold;
+    }
+
+    .desc {
+      font-size: 14pt;
+      color: #555;
+      margin-bottom: 14px;
+    }
+
+    .buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    a {
+      display: inline-block;
+      padding: 12px 22px;
+      background: #f2c94c;
+      color: #333;
+      text-decoration: none;
+      border-radius: 12px;
+      font-size: 14pt;
+      font-weight: bold;
+    }
+
+    a:hover {
+      background: #e0b93c;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>✏️ G3 Writing</h1>
+<div class="subtitle">
+  英検3級レベル｜ライティング練習
+</div>
+
+<!-- Day 1 -->
+<div class="item">
+  <div class="title">Day 1｜Word Order</div>
+  <div class="desc">
+    語順を並べて、正しい英文を作ろう
+  </div>
+  <div class="buttons">
+    <a href="http://nocci-lab.github.io/G3-WritingEx/G3_Day1_Writing.html">▶ はじめる</a>
+  </div>
+</div>
+
+<!-- ▼ Day を追加するときはこの形をコピペ ▼ -->
+<!--
+<div class="item">
+  <div class="title">Day 2｜〇〇</div>
+  <div class="desc">
+    簡単な説明を書く
+  </div>
+  <div class="buttons">
+    <a href="G3_Day2_Writing.html">▶ はじめる</a>
+  </div>
+</div>
+-->
+
+</body>
+</html>
