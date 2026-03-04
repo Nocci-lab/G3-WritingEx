@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>Day 4 Writing | Word Order</title>
+
+<style>
+body{
+  font-family:"Hiragino Maru Gothic ProN","Hiragino Maru Gothic",sans-serif;
+  background:#fff9e6;
+  padding:20px;
+  text-align:center;
+  font-size:20px;
+}
+
+h1{
+  font-size:32px;
+  margin-bottom:20px;
+}
+
+.frame{
+  max-width:900px;
+  margin:auto;
+  background:#ffffff;
+  border:3px solid #f2c94c;
+  border-radius:16px;
+  padding:24px;
+}
+
+#jp{
+  font-size:26px;
+  font-weight:bold;
+  margin-bottom:20px;
+}
+
+.row{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+  gap:10px;
+  margin:16px 0;
+}
+
+#answerRow{
+  min-height:80px;
+  border:3px dashed #bbb;
+  border-radius:12px;
+  padding:12px;
+}
+
+.card{
+  background:#e6f5e6;
+  padding:14px 18px;
+  border-radius:12px;
+  font-size:24px;
+  font-weight:bold;
+  cursor:pointer;
+  user-select:none;
+  box-shadow:2px 2px 6px rgba(0,0,0,.2);
+}
+
+button{
+  padding:12px 24px;
+  font-size:20px;
+  border-radius:12px;
+  margin:6px;
+}
+
+#message{
+  font-size:24px;
+  font-weight:bold;
+  height:32px;
+  margin-top:10px;
+}
+
+#nextBtn,
+#speakBtn{
+  display:none;
+}
+
+canvas{
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+}
+</style>
+</head>
+
+<body>
+
+<h1>Day 4 Writing – Word Order</h1>
+
+<div class="frame">
+  <div id="jp"></div>
+
+  <div class="row" id="answerRow"></div>
+  <div class="row" id="cardRow"></div>
+
+  <button onclick="checkAnswer()">Check</button>
+  <button onclick="shuffleCards()">Shuffle 🔀</button>
+  <button id="nextBtn" onclick="nextQ()">Next ▶</button>
+  <button id="speakBtn" onclick="speak()">🔊 音声を聞く</button>
+  <button onclick="makePDF()">📄 PDF</button>
+
+  <div id="message"></div>
+</div>
+
+<canvas id="confetti"></canvas>
+
+<script>
+const questions = [
+{jp:"あなたはどんな種類の野菜が好きですか？",en:"What kind of vegetables do you like?"},
+{jp:"私は財布を家に忘れました。",en:"I left my wallet at home."},
+{jp:"生徒たちは教室を掃除するとき、お互いに助け合うべきです。",en:"Students should help each other when they clean the classroom."},
+{jp:"生徒たちは携帯電話を学校に持ってくるべきではありません。",en:"Students should not bring their cell phones to school."},
+{jp:"私は雑誌を買いに本屋へ行くところです。",en:"I am going to the bookstore to get some magazines."},
+{jp:"私は他の文化を経験するために海外へ行きたいです。",en:"I want to go abroad to experience other cultures."},
+{jp:"トムは切手を買いに郵便局へ行くところです。",en:"Tom is going to the post office to get some stamps."},
+{jp:"子どもたちは危険な場所を歩くべきではありません。",en:"Children should not walk in dangerous areas."},
+{jp:"人々はAIを使うことによって、すばやく情報を得ることができます。",en:"People can get information quickly by using AI."},
+{jp:"私は将来、有名な作家になりたいです。",en:"I want to be a famous writer in the future."},
+{jp:"風邪をひいているので、薬を飲んで早く寝ます。",en:"I will take some medicine and go to bed early because I have a cold."},
+{jp:"本屋がどこにあるか教えていただけますか？",en:"Could you tell me where the bookstore is?"},
+{jp:"デザートに何を召し上がりたいですか？",en:"What would you like to have for dessert?"},
+{jp:"私は毎日英語を勉強するのは良い考えだと思います。",en:"I think it is a good idea to study English every day."},
+{jp:"昨日セールをしていたので、服をたくさん買いました。",en:"I bought many clothes yesterday because they were on sale."},
+{jp:"私はトラやペンギンを見るために動物園に行きたいです。",en:"I want to go to the zoo to see tigers and penguins."}
+];
+
+let cur=0;
+
+/* ⭐ カンマ・ピリオドを単語扱い */
+function wordsOf(i){
+  return questions[i].en
+    .replace(/([.,?])/g," $1 ")
+    .trim()
+    .split(/\s+/);
+}
+
+function loadQ(){
+  message.textContent="";
+  nextBtn.style.display="none";
+  speakBtn.style.display="none";
+  jp.textContent=(cur+1)+") "+questions[cur].jp;
+  answerRow.innerHTML="";
+  cardRow.innerHTML="";
+
+  shuffle(wordsOf(cur)).forEach(w=>{
+    const c=document.createElement("div");
+    c.className="card";
+    c.textContent=w;
+    c.onclick=()=>toggle(c);
+    cardRow.appendChild(c);
+  });
+}
+
+function toggle(card){
+  if(card.parentElement.id==="cardRow"){
+    answerRow.appendChild(card);
+  }else{
+    cardRow.appendChild(card);
+  }
+}
+
+/* ⭐ スペース完全一致修正版 */
+function checkAnswer(){
+  const user=[...answerRow.children]
+    .map(c=>c.textContent)
+    .join(" ")
+    .replace(/\s+/g," ")
+    .trim();
+
+  const correct=wordsOf(cur).join(" ");
+
+  if(user===correct){
+    message.textContent="Correct! 🎉";
+    nextBtn.style.display="inline-block";
+    speakBtn.style.display="inline-block";
+  }else{
+    message.textContent="Try again ❌";
+  }
+}
+
+function shuffleCards(){
+  [...answerRow.children].forEach(c=>cardRow.appendChild(c));
+  shuffle([...cardRow.children]).forEach(c=>cardRow.appendChild(c));
+  message.textContent="";
+  nextBtn.style.display="none";
+  speakBtn.style.display="none";
+}
+
+function nextQ(){
+  cur++;
+  if(cur<questions.length){
+    loadQ();
+  }else{
+    message.textContent="All Done! 🎊";
+    startConfetti();
+  }
+}
+
+function shuffle(a){
+  return [...a].sort(()=>Math.random()-.5);
+}
+
+function speak(){
+  const u=new SpeechSynthesisUtterance(questions[cur].en);
+  u.lang="en-US";
+  u.rate=0.7;
+  speechSynthesis.cancel();
+  speechSynthesis.speak(u);
+}
+
+loadQ();
+
+function makePDF(){
+  const w=window.open("");
+  w.document.write(`
+  <html><head><style>
+  body{font-family:"Hiragino Maru Gothic ProN";padding:24px;}
+  h2{text-align:center;margin-bottom:20px;}
+  .q{margin-bottom:28px;page-break-inside:avoid;}
+  .words{font-size:13px;margin:6px 0;}
+  .line{border-bottom:1px solid #000;height:24px;margin-top:8px;}
+  .answer{margin-bottom:10px;}
+  .page-break{page-break-before:always;}
+  </style></head><body>
+  <h2>Day 4 Writing</h2>
+  Name: ____________　Date: ____________<br><br>
+  `);
+
+  /* ⭐ 問題ページ */
+  questions.forEach((q,i)=>{
+    const wds=shuffle(wordsOf(i)).join(" / ");
+    w.document.write(`
+      <div class="q">
+        ${i+1}) ${q.jp}<br>
+        <div class="words">${wds}</div>
+        <div class="line"></div>
+      </div>
+    `);
+  });
+
+  /* ⭐ 改ページ */
+  w.document.write(`
+    <div class="page-break"></div>
+    <h2>Answer</h2>
+  `);
+
+  /* ⭐ 答えページ */
+  questions.forEach((q,i)=>{
+    w.document.write(`
+      <div class="answer">
+        ${i+1}) ${q.en}
+      </div>
+    `);
+  });
+
+  w.document.write("</body></html>");
+  w.document.close();
+  w.print();
+}
+
+
+
+
+</script>
+</body>
+</html>
